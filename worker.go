@@ -27,14 +27,23 @@ func main() {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"Test Queue", // name
-		false,        // durable
-		false,        // delete when unused
-		false,        // exclusive
-		false,        // no-wait
-		nil,          // arguments
+		"task_queue_new", // name
+		true,             // durable
+		false,            // delete when unused
+		false,            // exclusive
+		false,            // no-wait
+		nil,              // arguments
 	)
 	failAnError(err, "Failed to declare a queue")
+
+	// ini setingan untuk mengatur consumer bahwa service ini tidak akan menerima data dari server rabbitMQ jika data nya masih ada dan diproses.
+	// maka server rabbitMQ akan secara otomatis mengirim data service lain dengan queue yang sama dengan ini
+	err = ch.Qos(
+		1,     // prefetch count
+		0,     // prefetch size
+		false, // global
+	)
+	failAnError(err, "Failed to set QoS")
 
 	// jika auto-ack di set false, maka jika consumer penerima data mati dan data dari rabbitmq belum di selesai proses
 	// semua data baik yang dikirim atau yang berada di queue akan dipulihkan kembali
@@ -56,7 +65,7 @@ func main() {
 			log.Printf("Recived a message %s", d.Body)
 			dotCount := bytes.Count(d.Body, []byte("."))
 			t := time.Duration(dotCount)
-			time.Sleep(5 * time.Second)
+			// time.Sleep(20 * time.Second)
 			time.Sleep(t * time.Second)
 			log.Printf("Done")
 		}

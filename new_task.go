@@ -40,12 +40,12 @@ func main() {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"Test Queue",
-		false,
-		false,
-		false,
-		false,
-		nil,
+		"task_queue_new", // name
+		true,             // durable
+		false,            // delete when unused
+		false,            // exclusive
+		false,            // no-wait
+		nil,              // arguments
 	)
 	failAnError(err, "Failed to declare queue")
 
@@ -61,7 +61,7 @@ func main() {
 		false,  // mandatory
 		false,  // immediate
 		amqp.Publishing{
-			DeliveryMode: amqp.Persistent,
+			DeliveryMode: amqp.Persistent, // ini harus di set agar data tetap akan ada jika server rabbitmq direstart
 			ContentType:  "text/plain",
 			Body:         []byte(body),
 		},
