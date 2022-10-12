@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -13,6 +15,16 @@ func failAnError(err error, msg string) {
 	if err != nil {
 		log.Panicf("%s : %s", msg, err)
 	}
+}
+
+func bodyFrom(args []string) string {
+	var s string
+	if (len(args) < 2) || os.Args[1] == "" {
+		s = "hello"
+	} else {
+		s = strings.Join(args[1:], " ")
+	}
+	return s
 }
 
 func main() {
@@ -40,7 +52,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	body := "Hello World"
+	body := bodyFrom(os.Args)
 
 	err = ch.PublishWithContext(
 		ctx,    // context with timeout
@@ -49,8 +61,9 @@ func main() {
 		false,  // mandatory
 		false,  // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(body),
+			DeliveryMode: amqp.Persistent,
+			ContentType:  "text/plain",
+			Body:         []byte(body),
 		},
 	)
 	failAnError(err, "Failed to publish message")

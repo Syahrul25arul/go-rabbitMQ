@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -50,8 +52,13 @@ func main() {
 	go func() {
 		for d := range msg {
 			log.Printf("Recived a message %s", d.Body)
+			dotCount := bytes.Count(d.Body, []byte("."))
+			t := time.Duration(dotCount)
+			time.Sleep(t * time.Second)
+			log.Printf("Done")
 		}
 	}()
 
+	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
 }
