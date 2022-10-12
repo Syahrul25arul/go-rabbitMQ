@@ -36,10 +36,12 @@ func main() {
 	)
 	failAnError(err, "Failed to declare a queue")
 
+	// jika auto-ack di set false, maka jika consumer penerima data mati dan data dari rabbitmq belum di selesai proses
+	// semua data baik yang dikirim atau yang berada di queue akan dipulihkan kembali
 	msg, err := ch.Consume(
 		q.Name, // queue name
 		"",     // consumer
-		true,   // auto-ack
+		false,  // auto-ack
 		false,  // exclusive
 		false,  // no local
 		false,  // no-wait
@@ -54,6 +56,7 @@ func main() {
 			log.Printf("Recived a message %s", d.Body)
 			dotCount := bytes.Count(d.Body, []byte("."))
 			t := time.Duration(dotCount)
+			time.Sleep(5 * time.Second)
 			time.Sleep(t * time.Second)
 			log.Printf("Done")
 		}
